@@ -6,6 +6,7 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 
 const API_URL =
@@ -27,7 +28,6 @@ export default function App() {
         }
 
         const result = await response.json();
-
         setMeals(result.meals || []);
       } catch (error) {
         setError('Something went wrong. Please check your internet connection.');
@@ -43,7 +43,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Recipe Explorer</Text>
-      <Text style={styles.subtitle}>Discover delicious recipes</Text>
+      <Text style={styles.subtitle}>Find something delicious today!</Text>
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -56,10 +56,23 @@ export default function App() {
         <FlatList
           data={meals}
           keyExtractor={(item) => item.idMeal}
+          contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <View style={styles.recipe}>
-              <Text style={styles.recipeName}>{item.strMeal}</Text>
-              <Text style={styles.category}>{item.strCategory}</Text>
+              <Image
+                source={{ uri: item.strMealThumb }}
+                style={styles.image}
+              />
+
+              <View style={styles.recipeInfo}>
+                <Text style={styles.recipeName}>{item.strMeal}</Text>
+                <Text style={styles.detail}>
+                  Category: {item.strCategory}
+                </Text>
+                <Text style={styles.detail}>
+                  Cuisine: {item.strArea}
+                </Text>
+              </View>
             </View>
           )}
           ListEmptyComponent={
@@ -75,7 +88,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF5F8',
-    padding: 20,
+    paddingHorizontal: 18,
     paddingTop: 55,
   },
   title: {
@@ -85,8 +98,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
-    color: '#777',
+    color: '#888',
     marginBottom: 20,
+  },
+  list: {
+    paddingBottom: 25,
   },
   loadingContainer: {
     flex: 1,
@@ -107,17 +123,27 @@ const styles = StyleSheet.create({
   },
   recipe: {
     backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    marginBottom: 18,
+    overflow: 'hidden',
+    elevation: 3,
+  },
+  image: {
+    width: '100%',
+    height: 190,
+  },
+  recipeInfo: {
     padding: 15,
-    marginBottom: 10,
-    borderRadius: 12,
   },
   recipeName: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#C44578',
+    marginBottom: 8,
   },
-  category: {
-    color: '#888',
-    marginTop: 5,
+  detail: {
+    fontSize: 14,
+    color: '#777',
+    marginTop: 3,
   },
 });
