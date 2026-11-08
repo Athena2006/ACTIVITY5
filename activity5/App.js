@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
+  Animated,
+  Easing,
 } from 'react-native';
 
 const API_URL =
@@ -16,6 +18,9 @@ export default function App() {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(25)).current;
 
   // Fetch recipes when the screen opens
   useEffect(() => {
@@ -40,10 +45,38 @@ export default function App() {
     fetchMeals();
   }, []);
 
+  // Animate the screen after loading
+  useEffect(() => {
+    if (!loading) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 700,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading, fadeAnim, slideAnim]);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Recipe Explorer</Text>
-      <Text style={styles.subtitle}>Find something delicious today!</Text>
+      <Animated.View
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        }}
+      >
+        <Text style={styles.emoji}>🍓</Text>
+        <Text style={styles.title}>Recipe Explorer</Text>
+        <Text style={styles.subtitle}>Find something delicious today!</Text>
+        <Text style={styles.sectionTitle}>Popular Chicken Recipes</Text>
+      </Animated.View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -58,7 +91,15 @@ export default function App() {
           keyExtractor={(item) => item.idMeal}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <View style={styles.recipe}>
+            <Animated.View
+              style={[
+                styles.recipe,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
+            >
               <Image
                 source={{ uri: item.strMealThumb }}
                 style={styles.image}
@@ -73,7 +114,7 @@ export default function App() {
                   Cuisine: {item.strArea}
                 </Text>
               </View>
-            </View>
+            </Animated.View>
           )}
           ListEmptyComponent={
             <Text style={styles.message}>No recipes found.</Text>
@@ -91,15 +132,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingTop: 55,
   },
+  emoji: {
+    fontSize: 32,
+    marginBottom: 5,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 29,
     fontWeight: 'bold',
     color: '#D94F87',
   },
   subtitle: {
     fontSize: 15,
     color: '#888',
-    marginBottom: 20,
+    marginTop: 5,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#B83D73',
+    marginTop: 25,
+    marginBottom: 15,
   },
   list: {
     paddingBottom: 25,
